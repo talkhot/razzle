@@ -1,64 +1,69 @@
 'use strict';
 
-var preset = {
-  presets: [
-    [require.resolve('babel-preset-env'), { modules: false }],
-    require.resolve('babel-preset-react'),
-  ],
-  plugins: [
-    // class { handleThing = () => { } }
-    require.resolve('babel-plugin-transform-class-properties'),
+const env = (() => {
+  const env = process.env.BABEL_ENV || process.env.NODE_ENV;
+  if (env !== 'development' && env !== 'test' && env !== 'production') {
+    throw new Error(
+      'Using `babel-preset-razzle` requires that you specify `NODE_ENV` or ' +
+        '`BABEL_ENV` environment variables. Valid values are "development", ' +
+        '"test", and "production". Instead, received: ' +
+        JSON.stringify(env) +
+        '.'
+    );
+  }
+  return env;
+})();
 
-    // The following two plugins use Object.assign directly, instead of Babel's
-    // extends helper. Note that this assumes `Object.assign` is available.
-    // { ...todo, completed: true }
-    [
-      require.resolve('babel-plugin-transform-object-rest-spread'),
-      {
-        useBuiltIns: true,
-      },
+const development = env === 'development';
+const test = env === 'test';
+const production = env == 'production';
+
+module.exports = (
+  api,
+  opts = {
+    env: { modules: false }, // https://git.io/vA8cw
+    react: { development: development || test }, // https://git.io/vA8cr
+  }
+) => {
+  return {
+    presets: [
+      [require('@babel/preset-env'), envOptions(opts)],
+      [require('@babel/preset-react'), reactOptions(opts)],
     ],
-    // Adds syntax support for import()
-    require.resolve('babel-plugin-syntax-dynamic-import'),
-    // Add support for async/await
-    require.resolve('babel-plugin-transform-runtime'),
-  ],
+    plugins: [
+      require('@babel/plugin-proposal-class-properties'),
+      [require('@babel/plugin-proposal-object-rest-spread'), builtIns()],
+      require('@babel/plugin-syntax-dynamic-import'),
+      transformsAsync(opts) && require('@babel/plugin-transform-runtime'),
+      test && [require('@babel/plugin-transform-modules-commonjs'), loose()],
+      test && require('babel-plugin-dynamic-import-node'),
+      production && require('babel-plugin-transform-react-remove-prop-types'),
+    ],
+  };
 };
 
-var env = process.env.BABEL_ENV || process.env.NODE_ENV;
-if (env !== 'development' && env !== 'test' && env !== 'production') {
-  throw new Error(
-    'Using `babel-preset-razzle` requires that you specify `NODE_ENV` or ' +
-      '`BABEL_ENV` environment variables. Valid values are "development", ' +
-      '"test", and "production". Instead, received: ' +
-      JSON.stringify(env) +
-      '.'
+function envOptions(opts) {
+  return opts.hasOwnProperty('env') ? opts.env : { modules: false };
+}
+
+function reactOptions(opts) {
+  return opts.hasOwnProperty('react')
+    ? opts.react
+    : { development: development || test }; // https://git.io/vA8ca
+}
+
+function builtIns() {
+  return { useBuiltIns: true };
+}
+
+function loose() {
+  return { loose: true };
+}
+
+function transformsAsync({ env: { exclude } }) {
+  let excluded = exclude.join();
+  return (
+    !/transform-async-to-generator/.test(exclude) &&
+    !/transform-regenerator/.test(exclude)
   );
 }
-
-if (env === 'development' || env === 'test') {
-  preset.plugins.push.apply(preset.plugins, [
-    // Adds component stack to warning messages
-    require.resolve('babel-plugin-transform-react-jsx-source'),
-  ]);
-}
-
-if (env === 'test') {
-  preset.plugins.push.apply(preset.plugins, [
-    // Compiles import() to a deferred require()
-    require.resolve('babel-plugin-dynamic-import-node'),
-    // Transform ES modules to commonjs for Jest support
-    [
-      require.resolve('babel-plugin-transform-es2015-modules-commonjs'),
-      { loose: true },
-    ],
-  ]);
-}
-
-if (env === 'production') {
-  preset.plugins.push.apply(preset.plugins, [
-    require.resolve('babel-plugin-transform-react-remove-prop-types'),
-  ]);
-}
-
-module.exports = preset;
