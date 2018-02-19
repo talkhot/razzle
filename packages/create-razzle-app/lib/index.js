@@ -5,6 +5,7 @@ const fs = require('fs');
 const copyDir = require('./utils/copy-dir');
 const install = require('./utils/install');
 const loadExample = require('./utils/load-example');
+const isEnvLocal = require('./utils/env');
 const messages = require('./messages');
 
 module.exports = function createRazzleApp(opts) {
@@ -20,7 +21,9 @@ module.exports = function createRazzleApp(opts) {
     process.exit(1);
   }
 
-  const projectPath = (opts.projectPath = process.cwd() + '/' + projectName);
+  // `isEnvLocal` allows to develop and test with local examples.
+  const projectPath = (opts.projectPath =
+    process.cwd() + '/' + (isEnvLocal ? `build/${projectName}` : projectName));
 
   if (opts.example) {
     loadExample({
@@ -54,10 +57,10 @@ function installWithMessageFactory(opts, isExample = false) {
         ? ['razzle']
         : ['react', 'react-dom', 'react-router-dom', 'razzle', 'express'],
     })
-      .then(function() {
-        console.log(messages.start(projectName));
+      .then(withInit => {
+        console.log(messages.start(projectName, withInit));
       })
-      .catch(function(err) {
+      .catch(err => {
         throw err;
       });
   };
