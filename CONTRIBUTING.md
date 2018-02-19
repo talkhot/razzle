@@ -1,6 +1,6 @@
 # Contributing to Razzle
 
-Hi there! Thanks for your interest in Razzle. This guide will help you get started contributing. 
+Hi there! Thanks for your interest in Razzle. This guide will help you get started contributing.
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
