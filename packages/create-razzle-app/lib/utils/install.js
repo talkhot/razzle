@@ -35,14 +35,14 @@ module.exports = function install(opts) {
 
     execa(packager, initArgs)
       .then(() => {
-        stopSpinner();
         withInit = true;
-        stopSpinner = output.wait('Installing modules');
+        showInstallingModules();
         install();
       })
       .catch(install);
 
     function install() {
+      !withInit && showInstallingModules();
       execa(packager, installArgs)
         .then(() => {
           // Confirm that all dependencies were installed
@@ -60,6 +60,11 @@ module.exports = function install(opts) {
           console.log(messages.installError(packages));
           return reject(new Error(`${packager} installation failed`));
         });
+    }
+
+    function showInstallingModules() {
+      stopSpinner();
+      stopSpinner = output.wait('Installing modules');
     }
   });
 };
