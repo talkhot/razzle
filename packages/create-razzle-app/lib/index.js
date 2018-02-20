@@ -16,14 +16,15 @@ module.exports = function createRazzleApp(opts) {
     process.exit(1);
   }
 
-  if (fs.existsSync(projectName)) {
+  // `isEnvLocal` allows to develop and test with local examples.
+  const projectDir = isEnvLocal ? `build/${projectName}` : projectName;
+
+  if (fs.existsSync(projectDir)) {
     console.log(messages.alreadyExists(projectName));
     process.exit(1);
   }
 
-  // `isEnvLocal` allows to develop and test with local examples.
-  const projectPath = (opts.projectPath =
-    process.cwd() + '/' + (isEnvLocal ? `build/${projectName}` : projectName));
+  const projectPath = (opts.projectPath = `${process.cwd()}/${projectDir}`);
 
   if (opts.example) {
     loadExample({
