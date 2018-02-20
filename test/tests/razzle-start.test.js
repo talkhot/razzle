@@ -7,7 +7,7 @@ const path = require('path');
 
 shell.config.silent = true;
 
-const timeout = 20000;
+const timeout = 30000;
 
 describe('razzle start', () => {
   describe('razzle basic example', () => {
