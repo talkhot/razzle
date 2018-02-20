@@ -71,7 +71,7 @@ If you'd like to add an example, I suggest you duplicate the `examples/basic` fo
 
 ### Examples with locally-built binaries
 
-Projects such as `ReactReason` require compilers (`BuckleScript`) that are built locally. These _must_ be installed via `yarn run init` rather than added directly to `devDependencies`. When added directly to `devDependencies`, internal `yarn install` performs an unnecessary, expensive operation. `create-razzle-app` makes sure that `npm/yarn run init` bootstraps these requirements in userland at create-time. See [with-reason-react's `package.json`](examples/with-reason-react/package.json).
+Projects such as `ReactReason` require compilers (`BuckleScript`) that are built locally. These _must_ be installed via `yarn run init:bin` rather than added directly to `devDependencies`. When added directly to `devDependencies`, internal `yarn install` performs an unnecessary, expensive operation. `create-razzle-app` makes sure that `npm/yarn run init:bin` bootstraps these requirements in userland at create-time. See [with-reason-react's `package.json`](examples/with-reason-react/package.json).
 
 ### Naming examples
 
