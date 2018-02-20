@@ -7,6 +7,8 @@ const path = require('path');
 
 shell.config.silent = true;
 
+const timeout = 20000;
+
 describe('razzle start', () => {
   describe('razzle basic example', () => {
     beforeAll(() => {
@@ -15,35 +17,39 @@ describe('razzle start', () => {
 
     it(
       'should start a dev server',
-      () => {
-        return run({
-          main: './node_modules/.bin/razzle start',
-          print: 'curl -sb -o "" localhost:3001/static/js/bundle.js',
-          matches: ['Compiled successfully', 'React'],
-        })
-          .then(test => expect(test).toBe(true))
-          .catch(error => {
-            throw error;
-          });
+      async () => {
+        try {
+          expect(
+            await run({
+              main: './node_modules/.bin/razzle start',
+              print: 'curl -sb -o "" localhost:3001/static/js/bundle.js',
+              matches: ['Compiled successfully', 'React'],
+            })
+          ).toBe(true);
+        } catch (error) {
+          throw error;
+        }
       },
-      1000000
+      timeout
     );
 
     it(
       'should build and run',
-      () => {
+      async () => {
         shell.exec('./node_modules/.bin/razzle build');
-        return run({
-          main: 'node build/server.js',
-          print: 'curl -I localhost:3000',
-          matches: ['> Started on port 3000', '200'],
-        })
-          .then(test => expect(test).toBe(true))
-          .catch(error => {
-            throw error;
-          });
+        try {
+          expect(
+            await run({
+              main: 'node build/server.js',
+              print: 'curl -I localhost:3000',
+              matches: ['> Started on port 3000', '200'],
+            })
+          ).toBe(true);
+        } catch (error) {
+          throw error;
+        }
       },
-      400000
+      timeout
     );
 
     afterAll(() => {
