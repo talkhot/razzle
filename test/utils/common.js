@@ -20,18 +20,12 @@ exports.run = ({ main, print, matches }) => {
     function killresolve() {
       shell.exec('sleep 5');
       const result = shell.exec(print).stdout.includes(matches[1]);
-      try {
-        kill(child.pid);
-      } finally {
-        resolve(result);
-      }
+      kill(child.pid);
+      resolve(result);
     }
     function killreject(stderr) {
-      try {
-        kill(child.pid);
-      } finally {
-        reject(stderr);
-      }
+      kill(child.pid);
+      reject(stderr);
     }
   });
 };
