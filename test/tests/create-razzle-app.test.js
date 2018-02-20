@@ -3,14 +3,13 @@
 const shell = require('shelljs');
 const path = require('path');
 const { rootDir } = require('../fixtures/util');
+const { run } = require('../utils/common');
 const craDir = `packages/create-razzle-app/`;
 const buildDir = path.join(rootDir, `build`);
 const bin = path.join(rootDir, craDir, `bin/create-razzle-app`);
-const razzleBin = appName => path.join(buildDir, appName, 'razzle');
-const { run } = require('../utils/common');
-
-shell.config.silent = true;
+const packager = 'npm'; // Relying on npm for tests rather than yarn to avoid conflicts with Yarn Workspaces.
 const timeout = 150000;
+shell.config.silent = true;
 
 describe('create-react-app', () => {
   it(
@@ -29,15 +28,17 @@ describe('create-react-app', () => {
         true
       );
 
-      run({
-        main: `${razzleBin(name)} start`,
-        print: 'curl -sb -o "" localhost:3001/static/js/bundle.js',
-        matches: ['Compiled successfully', 'React'],
-      })
-        .then(test => expect(test).toBe(true))
-        .catch(error => {
-          throw error;
-        });
+      try {
+        expect(
+          await run({
+            main: `cd ${buildDir}/${name} && ${packager} start`,
+            print: 'curl -sb -o "" localhost:3001/static/js/bundle.js',
+            matches: ['Compiled successfully', 'React'],
+          })
+        ).toBe(true);
+      } catch (error) {
+        throw error;
+      }
     },
     timeout
   );
@@ -62,15 +63,17 @@ describe('create-react-app', () => {
       );
 
       // Indirectly tests `yarn init:bin`
-      run({
-        main: `${razzleBin(name)} start`,
-        print: 'curl -sb -o "" localhost:3001/static/js/bundle.js',
-        matches: ['Compiled successfully', 'Main.elm'],
-      })
-        .then(test => expect(test).toBe(true))
-        .catch(error => {
-          throw error;
-        });
+      try {
+        expect(
+          await run({
+            main: `cd ${buildDir}/${name} && ${packager} start`,
+            print: 'curl -sb -o "" localhost:3001/static/js/bundle.js',
+            matches: ['Compiled successfully', 'Main.elm'],
+          })
+        ).toBe(true);
+      } catch (error) {
+        throw error;
+      }
     },
     timeout
   );
