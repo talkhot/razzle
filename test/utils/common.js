@@ -1,23 +1,37 @@
 const shell = require('shelljs');
 const kill = require('../utils/psKill');
 
+const errorRegex = /error/i;
 shell.config.silent = true;
 
 exports.run = ({ main, print, matches }) => {
   return new Promise((resolve, reject) => {
     const child = shell.exec(main, { async: true });
-    child.stderr.on('data', data => {
-      kill(child.pid);
-      reject(data);
-    });
-    child.stdout.on('data', data => {
-      if (data.includes(matches[0])) {
-        shell.exec('sleep 5');
-        const result = shell.exec(print).stdout.includes(matches[1]);
+    child.stderr.on('data', killreject);
+    child.stdout.on('data', data => containsError(data) && killreject(data));
+    child.stdout.on('data', data => containsMatch(data) && killresolve());
+
+    function containsMatch(data) {
+      return data.includes(matches[0]);
+    }
+    function containsError(data) {
+      return errorRegex.test(data.toString());
+    }
+    function killresolve() {
+      shell.exec('sleep 5');
+      const result = shell.exec(print).stdout.includes(matches[1]);
+      try {
         kill(child.pid);
+      } finally {
         resolve(result);
       }
-      // Do not reject on stdout as output may be continuous.
-    });
+    }
+    function killreject(stderr) {
+      try {
+        kill(child.pid);
+      } finally {
+        reject(stderr);
+      }
+    }
   });
 };
