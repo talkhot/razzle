@@ -2,6 +2,7 @@
 
 const exec = require('execa');
 const Promise = require('promise');
+const path = require('path');
 const output = require('./output');
 const isEnvLocal = require('./env');
 
@@ -9,10 +10,17 @@ module.exports = function loadExample(opts) {
   const projectName = opts.projectName;
   const example = opts.example;
 
+  // cwd-agnostic resolve
+  const exampleDir = name =>
+    path.resolve(
+      path.dirname(require.main.filename), // packages/create-razzle-app/bin
+      `../../../examples/${name}/`
+    );
+
   const cmds = isEnvLocal
     ? [
         `mkdir -p build/${projectName}`,
-        `cp -a ../../examples/${example}/. build/${projectName}/.`,
+        `cp -a ${exampleDir(example)}/. build/${projectName}/.`,
       ]
     : [
         `mkdir -p ${projectName}`,
@@ -25,10 +33,16 @@ module.exports = function loadExample(opts) {
 
   const cmdPromises = cmds.map(cmd => exec.shell(cmd));
 
-  return Promise.all(cmdPromises).then(() => {
-    stopSpinner();
-    output.success(
-      `Downloaded ${output.cmd(example)} files for ${output.cmd(projectName)}`
-    );
-  });
+  return Promise.all(cmdPromises)
+    .then(() => {
+      stopSpinner();
+      output.success(
+        `Downloaded ${output.cmd(example)} files for ${output.cmd(projectName)}`
+      );
+    })
+    .catch(error => {
+      stopSpinner();
+      console.error(error);
+      throw error;
+    });
 };
