@@ -13,34 +13,38 @@ describe('razzle start', () => {
       shell.cd(path.join(util.rootDir, 'examples/basic'));
     });
 
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 1000000; // eslint-disable-line no-undef
+    it(
+      'should start a dev server',
+      () => {
+        return run({
+          main: './node_modules/.bin/razzle start',
+          print: 'curl -sb -o "" localhost:3001/static/js/bundle.js',
+          matches: ['Compiled successfully', 'React'],
+        })
+          .then(test => expect(test).toBe(true))
+          .catch(error => {
+            throw error;
+          });
+      },
+      1000000
+    );
 
-    it('should start a dev server', () => {
-      return run({
-        main: './node_modules/.bin/razzle start',
-        print: 'curl -sb -o "" localhost:3001/static/js/bundle.js',
-        matches: ['Compiled successfully', 'React'],
-      })
-        .then(test => expect(test).toBe(true))
-        .catch(error => {
-          throw error;
-        });
-    });
-
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 400000; // eslint-disable-line no-undef
-
-    it('should build and run', () => {
-      shell.exec('./node_modules/.bin/razzle build');
-      return run({
-        main: 'node build/server.js',
-        print: 'curl -I localhost:3000',
-        matches: ['> Started on port 3000', '200'],
-      })
-        .then(test => expect(test).toBe(true))
-        .catch(error => {
-          throw error;
-        });
-    });
+    it(
+      'should build and run',
+      () => {
+        shell.exec('./node_modules/.bin/razzle build');
+        return run({
+          main: 'node build/server.js',
+          print: 'curl -I localhost:3000',
+          matches: ['> Started on port 3000', '200'],
+        })
+          .then(test => expect(test).toBe(true))
+          .catch(error => {
+            throw error;
+          });
+      },
+      400000
+    );
 
     afterAll(() => {
       shell.rm('-rf', 'build');
